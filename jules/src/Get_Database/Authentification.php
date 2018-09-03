@@ -103,5 +103,30 @@ class Authentification {
         }
             
     }
+    
+    public function Generate_Password() {
+        $all = range("a","z");
+        $ALPHABET = range("A", "Z");
+        $chiffre = range(0,9);
+        $length = rand(15,20);
+        $Password = "";
+        $i = 0;
+        foreach($ALPHABET as $Al) {
+            array_push($all, $Al);
+        }
+        foreach($chiffre as $ch) {
+            array_push($all, $ch);
+        }
+        while ($i < $length) {
+            $rand_keys = array_rand($all);
+            $Password = $Password . $all[$rand_keys];
+            $i++;
+        }
+        echo $Password;
+
+    }
 }
 
+
+$test = new Authentification();
+$test->Generate_Password();
