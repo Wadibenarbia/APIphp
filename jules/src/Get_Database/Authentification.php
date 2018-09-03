@@ -25,6 +25,15 @@ class Authentification {
         $response = $this->Login($Email, $Password);
         return $response;
     }
+    
+    public function Get_Login($request) {
+        
+        $json = $request->getBody();
+        $data = json_decode($json, true);
+        $Email = $data["Email"];
+        $response = $this->Forgot_Password($Email);
+        return $response;
+    }
 
     private function Register($Nom, $Prenom, $Email, $Password) {
         $DB = new MySQL();
@@ -104,7 +113,14 @@ class Authentification {
             
     }
     
-    public function Generate_Password() {
+    private function Forgot_Password($Email) {
+        if($this->Email_exist($Email) == 0) {
+            $this->Generate_Password();
+            return $Password;
+        }
+    }
+
+        private function Generate_Password() {
         $all = range("a","z");
         $ALPHABET = range("A", "Z");
         $chiffre = range(0,9);
@@ -122,8 +138,7 @@ class Authentification {
             $Password = $Password . $all[$rand_keys];
             $i++;
         }
-        echo $Password;
-
+        return $Password;
     }
 }
 
