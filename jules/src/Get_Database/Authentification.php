@@ -6,9 +6,9 @@ class Authentification {
     private $error = array("response" => 1);
     private $passerror = array("response" => 2);
 
-    public function Get_Request($request) {
-        $json = $request->getBody();
-        $data = json_decode($json, true);
+    public function Get_Request($data) {
+
+        
         $Nom = $data["Nom"];
         $Prenom = $data["Prenom"];
         $Email = $data["Email"];
@@ -16,20 +16,33 @@ class Authentification {
         $response = $this->Register($Nom, $Prenom, $Email, $Password);
         return $response;
     }
-    public function Get_Login($request) {
+    public function Get_Login($data) {
         
-        $json = $request->getBody();
-        $data = json_decode($json, true);
         $Email = $data["Email"];
         $Password = $data["Password"];
         $response = $this->Login($Email, $Password);
         return $response;
     }
     
-    public function Get_Login($request) {
+    public function Get_Infos($data) {
         
-        $json = $request->getBody();
-        $data = json_decode($json, true);
+        $DB = new MySQL();
+        $Email = $data["Email"];
+        if ($this->Email_exist($Email) == 1) {
+            $where[] = [
+                "champs1" => "Email",
+                "operations" => "=",
+                "champs2" => "'$Email'",
+                ] ;
+            $reponse = $DB->Select("user", "", $where);
+            return $reponse[0];
+        }
+        else 
+            return $this->error;
+    }
+    
+    public function Get_Password($data) {
+
         $Email = $data["Email"];
         $response = $this->Forgot_Password($Email);
         return $response;
@@ -50,13 +63,11 @@ class Authentification {
                 return $this->success;
             }
             else {
-                echo "Error Password";
                 return $this->passerror;
             }
                 
         }
         else {
-            echo "Email already existing";
             return $this->error;
         }
             
@@ -73,12 +84,10 @@ class Authentification {
            $resultat = $DB->Select("user", "", $where);
            $Passwordhash = $resultat[0]["Password"];
            if(password_verify($Password, $Passwordhash)) {
-               echo "Connected";
-               return (0);
+               return $this->success;
            }
            else {
-               echo "Email or Password are incorrect";
-               return (1);
+               return $this->error;
            }
         }
     }
@@ -114,8 +123,18 @@ class Authentification {
     }
     
     private function Forgot_Password($Email) {
-        if($this->Email_exist($Email) == 0) {
-            $this->Generate_Password();
+        if($this->Email_exist($Email) == 1) {
+            if($this->Generate_Password()) {
+                $Password = $this->Generate_Password();
+                $DB = new MySQL;
+                $valeur = array("Password" => "'$Password'");
+                $Whereup[] = array(
+                    "champs1" => "Email",
+                    "operations" => "=",
+                    "champs2" => "'$Email'"
+                );
+                $DB->Update("user", $valeur, $Whereup);
+            }
             return $Password;
         }
     }
@@ -142,6 +161,3 @@ class Authentification {
     }
 }
 
-
-$test = new Authentification();
-$test->Generate_Password();
