@@ -59,6 +59,14 @@ $app->POST('/Modify', function (Request $request, Response $response, array $arg
     $response = $Authentification->Modify($data);
     return json_encode($response);
 });
+
+$app->POST('/Interventions', function (Request $request, Response $response, array $args) use ($app) {
+    $data = $request->getBody();
+    $data = json_decode($data, true);   
+    $Authentification = new Authentification();
+    $response = $Authentification->Get_Interventions($data);
+    return json_encode($response);
+});
  
 
 
