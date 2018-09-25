@@ -5,10 +5,9 @@ class Authentification {
     private $success = array("response" => 0);
     private $error = array("response" => 1);
     private $passerror = array("response" => 2);
+    private $emailexist = array("response" => -1);
 
     public function Get_Request($data) {
-
-        
         $Nom = $data["Nom"];
         $Prenom = $data["Prenom"];
         $Email = $data["Email"];
@@ -16,12 +15,75 @@ class Authentification {
         $response = $this->Register($Nom, $Prenom, $Email, $Password);
         return $response;
     }
+    
     public function Get_Login($data) {
-        
         $Email = $data["Email"];
         $Password = $data["Password"];
         $response = $this->Login($Email, $Password);
         return $response;
+    }
+    
+    public function Modify($data) {
+        $oldEmail = $data["oldEmail"];
+        $Email = $data["newEmail"];
+        $Nom = $data["Nom"];
+        $Prenom = $data["Prenom"];
+        $Password = $data["Password"];
+        $test = "";
+        if ($Password != '') {
+            if($this->Check_Password($Password) == 0) {
+                $test = " " . $Password;
+                if($this->Update("Password", $Password, "Email", $oldEmail) == 1) {
+                    return $this->error;
+                }
+            }
+            else {return $this->passerror;}
+        }        
+        if($Nom != '') {
+            if($this->Update("Nom", $Nom, "Email", $oldEmail) == 1) {
+                return $this->error;
+            }
+            else {
+              $test = $test . " " . $Nom;  
+            }
+        }
+        
+        if($Prenom != '') {
+            $test = $test . " " . $Prenom;
+            if($this->Update("Prenom", $Prenom, "Email", $oldEmail) == 1) {
+                return $this->error;
+            }
+        }
+       if ($Email != '') {
+            if(($this->Email_exist($Email)) == 0) {
+                $test = $test . " " . $Email;
+                if($this->Update("Email", $Email, "Email", $oldEmail) == 1) {
+                    return $this->error;
+                }
+            }
+            else {return $this->emailexist;}
+        }
+        return ($this->success);
+        
+        
+        
+    }
+    
+    private function Update($champsvaleur, $valeur, $champs1, $champs2)  {
+                $DB = new MySQL();
+                $valeur = array($champsvaleur => "'$valeur'");
+                $Whereup[] = array(
+                    "champs1" => $champs1,
+                    "operations" => "=",
+                    "champs2" => "'$champs2'"
+                );
+                try {
+                    if ($DB->Update("user", $valeur, $Whereup)) {
+                        return 0;
+                    }
+                    else {return 1;}
+                }
+                catch (Exception $e) {}
     }
     
     public function Get_Infos($data) {
@@ -42,7 +104,6 @@ class Authentification {
     }
     
     public function Get_Password($data) {
-
         $Email = $data["Email"];
         $response = $this->Forgot_Password($Email);
         return $response;
@@ -79,7 +140,7 @@ class Authentification {
             "champs1" => "Email",
             "operations" => "=",
             "champs2" => "'$Email'",
-            ] ;
+            ];
        if($DB->Select("user", "", $where)) {
            $resultat = $DB->Select("user", "", $where);
            $Passwordhash = $resultat[0]["Password"];
@@ -127,16 +188,24 @@ class Authentification {
             if($this->Generate_Password()) {
                 $Password = $this->Generate_Password();
                 $DB = new MySQL;
-                $valeur = array("Password" => "'$Password'");
+                $Passwordhash = password_hash($Password, PASSWORD_DEFAULT);
+                $valeur = array("Password" => "'$Passwordhash'");
                 $Whereup[] = array(
                     "champs1" => "Email",
                     "operations" => "=",
                     "champs2" => "'$Email'"
                 );
-                $DB->Update("user", $valeur, $Whereup);
+                if($DB->Update("user", $valeur, $Whereup)) {
+                    return ($Password);
+                }
+                else {
+                    return $this->error;
+                }
+                    
             }
-            return $Password;
+            return $this->error;
         }
+        return $this->error;
     }
 
         private function Generate_Password() {
