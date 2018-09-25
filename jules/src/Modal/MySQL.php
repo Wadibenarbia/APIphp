@@ -30,9 +30,8 @@ class MySQL {
 
     //put your code here
 function __construct() 
-{
-      
-        $this->ConnectionToBDD("localhost", "root", "", "jules");
+{    
+        $this->ConnectionToBDD("localhost", "jules", '$jules123456$',"jules");
 }
 
 protected function ConnectionToBDD($servername, $id, $mdp, $dbname) 
