@@ -172,6 +172,26 @@ class Authentification {
             return (0);
    
     }
+    
+    private function ID_exist($IDuser) {
+        $DB = new MySQL();
+        $where[] = [
+            "champs1" => "id",
+            "operations" => "=",
+            "champs2" => "'$IDuser'"
+            ] ;
+        try {
+            $resultat = $DB->Select("user", "", $where );
+        }
+        catch (Exception $e) {} 
+        if (sizeof($resultat[0]) > 0) {
+            return (1);
+        }
+        else {
+        }
+            return (0);
+   
+    }
 
     private function Check_Password($Password) {
         if (strlen($Password) < 8 || (!ctype_alnum($Password)) || (!preg_match('/[A-Z]/m', $Password)) || (!preg_match('/[a-z]/m', $Password)) || (!preg_match('/[0-9]/m', $Password))) {
@@ -195,7 +215,7 @@ class Authentification {
                     "operations" => "=",
                     "champs2" => "'$Email'"
                 );
-                if($DB->Update("user", $valeur, $Whereup)) {
+                if ($DB->Update("user", $valeur, $Whereup)) {
                     return ($Password);
                 }
                 else {
@@ -228,5 +248,21 @@ class Authentification {
         }
         return $Password;
     }
+    
+    public function Get_Interventions($data) {
+        $IDuser = $data["iDuser"];
+        $DB = new MySQL();
+        if($this->ID_exist($IDuser) == 1) {
+            $where[] = [
+            "champs1" => "idUser",
+            "operations" => "=",
+            "champs2" => "'$IDuser'"
+            ] ;
+        try {
+           // $resultat = $DB->Select("Interventions", "*", $where );
+        }
+        catch (Exception $e) {}
+        return $this->success;
+        }
+ }
 }
-
